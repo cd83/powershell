@@ -7,13 +7,16 @@
 
 <#
 .SYNOPSIS
-This script duplicates a source folder into a list of Azure Storage Shares.
+This script duplicates a source folder into a list of Azure File Shares.
 
 .NOTES
+Run this script as a Windows Service
+http://software.dell.com/products/powergui-freeware/
+
 Authors:
 Chris Lee (chrisdlee@gmail.com)
 
-.TODO
+ToDo:
 - Set up script to get input from a config file
 
 #>
