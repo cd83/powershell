@@ -187,9 +187,11 @@ if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Adminis
       }
     else
       {
-        "PS $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel + 1)) "
+        $PromptString = $(Get-Location)
+        Write-Host $PromptString -NoNewline -ForegroundColor White -BackgroundColor Black
+        Write-VcsStatus
+        return " > "
       }
-    return " > "
   }
   Pop-Location
   Start-SshAgent -Quiet	
