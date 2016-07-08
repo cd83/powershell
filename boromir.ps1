@@ -73,16 +73,7 @@ function battle {
 
         clear
 
-        # Prints the header
-        Write-Host
-        Write-Host " Level:" $boromir.Level"    Boromir    Health:" $boromir.HP
-        Write-Host "-----------------------------------"
-        Write-Host
-        Write-Host " % to Block:" $boromir.BlockStat "     % to Parry:" $boromir.ParryStat
-        Write-Host
-        Write-Host " % to Dodge:" $boromir.DodgeStat "      % to Crit:" $boromir.CritStat
-        Write-Host
-        Write-Host "            Orcs Slain:" $boromir.Kills 
+        header 
 
         # Increase level
         if ($boromir.Kills -ge 10) {
@@ -114,7 +105,7 @@ function battle {
         Write-Host
         Write-Host -foreground red "A level" $Level "Orc with" $orc.HP "hit points attacks!"
         Write-Host
-        Start-Sleep -s 1
+        Start-Sleep -s 2
 
         While ( $orc.HP -ge 0 ) {
 
@@ -132,7 +123,7 @@ function battle {
 
             } else { # If Boromir fails block roll, Orc attacks Boromir
                 Write-Host -foreground red "The Orc hits Boromir for $orcAttack damage!"
-                Start-Sleep -s 1
+                Start-Sleep -s 2
                 Write-Host
                 # Subtract the Orcs attack damage from Boromir's health
                 $boromir.HP = $boromir.HP - $orcAttack
@@ -145,7 +136,7 @@ function battle {
                 Write-Host "Boromir has" $boromir.HP "hit points."
             }
             Write-Host
-            Start-Sleep -s 1
+            Start-Sleep -s 2
             
             # This is where Boromir attacks
             
@@ -177,14 +168,14 @@ function battle {
                 }   
 
                 Write-Host "Boromir attacks the Orc and does $boromirAttack damage."
-                Start-Sleep -s 1
+                Start-Sleep -s 2
                 Write-Host
                 $orc.HP = $orc.HP - $boromirAttack
 
             } else {
                 Write-Host "Boromor misses!"
                 Write-Host
-                Start-Sleep -s 1
+                Start-Sleep -s 2
             }
 
             if ( $orc.HP -le 0 ) {
@@ -196,12 +187,61 @@ function battle {
                 
             } Else {
                 Write-Host -foreground red "The Orc has" $orc.HP "hit points, and attacks again."
-                Start-Sleep -s 1
+                Start-Sleep -s 2
                 Write-Host
             }
         }
     }
 
+    gameOver
+    
+}
+
+#### Supporting functions here
+
+# This function performs a roll from 1 to 100
+# The $stat input is the stat you are rolling for a pass or a fail
+# For example: "roll $boromir.CritStat" will roll to see if Boromir crits his opponent
+function roll ( $stat ) {
+    $roll = Get-Random -Minimum 0 -Maximum 101
+    if ( $roll -ge (100 - $stat) ) {
+        return $true
+    } else {
+        return $false
+    }
+}
+
+
+# This function is the fight
+function fight ( $attacker, $defender ) {
+    <#
+
+    Attacker attacks
+
+    Defender defends
+
+    #>
+}
+
+
+# Header
+# Boromir's stats
+function header() {
+    # Prints the header
+        Write-Host
+        Write-Host " Level:" $boromir.Level"    Boromir    Health:" $boromir.HP
+        Write-Host "-----------------------------------"
+        Write-Host
+        Write-Host " % to Block:" $boromir.BlockStat "     % to Parry:" $boromir.ParryStat
+        Write-Host
+        Write-Host " % to Dodge:" $boromir.DodgeStat "      % to Crit:" $boromir.CritStat
+        Write-Host
+        Write-Host "            Orcs Slain:" $boromir.Kills
+}
+
+
+# Final Results
+function gameOver ( ) {
     Clear
 
     # Have to set the $boromir.Kills from an object parameter to a variable for the switch statement
@@ -226,20 +266,6 @@ Frodo and Sam have escaped with the ring.
 
 In the end, Boromir killed $tally Orcs.
 "}
-    }
-}
-
-#### Supporting functions here
-
-# This function performs a roll from 1 to 100
-# The $stat input is the stat you are rolling for a pass or a fail
-# For example: "roll $boromir.CritStat" will roll to see if Boromir crits his opponent
-function roll ( $stat ) {
-    $roll = Get-Random -Minimum 0 -Maximum 101
-    if ( $roll -ge (100 - $stat) ) {
-        return $true
-    } else {
-        return $false
     }
 }
 
