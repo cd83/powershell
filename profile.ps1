@@ -1,5 +1,53 @@
 # Powershell profile
 
+# Set Aliases
+# New-Alias find Get-Childitem # -recurse -filter
+
+$hosts = "C:\Windows\System32\drivers\etc\hosts"
+
+# Simple find function
+function find ($filter, $path) {
+  if ($path -eq $null) {
+    Get-Childitem -recurse -filter $filter
+  } else {
+    Get-Childitem -recurse -filter $filter -path $path
+  }
+}
+
+Function Start-Countdown 
+{   <#
+    .SYNOPSIS
+        Provide a graphical countdown if you need to pause a script for a period of time
+    .PARAMETER Seconds
+        Time, in seconds, that the function will pause
+    .PARAMETER Messge
+        Message you want displayed while waiting
+    .EXAMPLE
+        Start-Countdown -Seconds 30 -Message Please wait while Active Directory replicates data...
+    .NOTES
+        Author:            Martin Pugh
+        Twitter:           @thesurlyadm1n
+        Spiceworks:        Martin9700
+        Blog:              www.thesurlyadmin.com
+       
+        Changelog:
+           2.0             New release uses Write-Progress for graphical display while couting
+                           down.
+           1.0             Initial Release
+    .LINK
+        http://community.spiceworks.com/scripts/show/1712-start-countdown
+    #>
+    Param(
+        [Int32]$Seconds = 10,
+        [string]$Message = "Pausing for 10 seconds..."
+    )
+    ForEach ($Count in (1..$Seconds))
+    {   Write-Progress -Id 1 -Activity $Message -Status "Waiting for $Seconds seconds, $($Seconds - $Count) left" -PercentComplete (($Count / $Seconds) * 100)
+        Start-Sleep -Seconds 1
+    }
+    Write-Progress -Id 1 -Activity $Message -Status "Completed" -PercentComplete 100 -Completed
+}
+
 # Adds clock to window 
 function Add-Clock {
  $code = { 
@@ -90,7 +138,6 @@ function Load-Menu ()
 	$MenuOptions = [System.Management.Automation.Host.ChoiceDescription[]] ($E, $0, $1, $2)
 	
 	$MenuResult = $host.ui.PromptForChoice($Title, $Message, $MenuOptions, 0)
-    Set-Location C:\
     $Global:Env = ''
 	
 	switch	($MenuResult)
@@ -162,6 +209,9 @@ function ConnectProduction ()
 #Sets var to check for admin
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )  
 
+
+Set-Location C:\
+
 # This is the part that lods the prompt
 # If $currentPrincipal is admin, load all the things, else change foreground to magenta
 if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )) {
@@ -195,11 +245,12 @@ if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Adminis
   }
   Pop-Location
   Start-SshAgent -Quiet	
+#  Import-Module C:\github\LKPosh-Module\LeanKit_Module.psm1
   Load-Menu
 }
 else
 { 
   clear	
   Write-Host -foreground darkred -background magenta "Not running in Admin..."
-  $Host.UI.RawUI.ForegroundColor = “magenta”
+  $Host.UI.RawUI.ForegroundColor = �magenta�
 }
