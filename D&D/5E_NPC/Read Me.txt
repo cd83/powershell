@@ -1,0 +1,34 @@
+You need to unzip all the files into a directory.
+
+Open up PowerShell as administrator. Run the following command:
+
+Set-ExecutionPolicy unrestricted
+
+Answer "Y" to allow the change.
+
+Exit PowerShell
+Open up PowerShell (not as administrator)
+Connect to the directory where you unziped the files using
+
+cd "Z:\Path\To\Your\Files"
+
+Where "Z" is the drive and 
+"\Path\To\Your\Files" is the path where you unziped the files
+
+Enter the command:
+
+.\npc5e.ps1
+
+The system will generate an NPC
+
+The command:
+
+.\npc5e.ps1 5
+
+Will generate 5 NPCs
+
+You can use the mouse to highlight and copy the text
+Then paste it into another document.
+
+
+
