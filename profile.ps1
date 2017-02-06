@@ -1,7 +1,7 @@
 # Powershell profile
 
 # Set Aliases
-# New-Alias find Get-Childitem # -recurse -filter
+New-Alias dp Load-DeadpoolMenu
 
 $hosts = "C:\Windows\System32\drivers\etc\hosts"
 
@@ -15,37 +15,18 @@ function find ($filter, $path) {
 }
 
 Function Start-Countdown 
-{   <#
-    .SYNOPSIS
-        Provide a graphical countdown if you need to pause a script for a period of time
-    .PARAMETER Seconds
-        Time, in seconds, that the function will pause
-    .PARAMETER Messge
-        Message you want displayed while waiting
-    .EXAMPLE
-        Start-Countdown -Seconds 30 -Message Please wait while Active Directory replicates data...
-    .NOTES
-        Author:            Martin Pugh
-        Twitter:           @thesurlyadm1n
-        Spiceworks:        Martin9700
-        Blog:              www.thesurlyadmin.com
-       
-        Changelog:
-           2.0             New release uses Write-Progress for graphical display while couting
-                           down.
-           1.0             Initial Release
-    .LINK
-        http://community.spiceworks.com/scripts/show/1712-start-countdown
-    #>
-    Param(
-        [Int32]$Seconds = 10,
-        [string]$Message = "Pausing for 10 seconds..."
-    )
+{
+  Param
+  (
+    [Int32]$Seconds = 10,
+    [string]$Message = "Pausing for 10 seconds..."
+  )
     ForEach ($Count in (1..$Seconds))
-    {   Write-Progress -Id 1 -Activity $Message -Status "Waiting for $Seconds seconds, $($Seconds - $Count) left" -PercentComplete (($Count / $Seconds) * 100)
-        Start-Sleep -Seconds 1
-    }
-    Write-Progress -Id 1 -Activity $Message -Status "Completed" -PercentComplete 100 -Completed
+  {
+    Write-Progress -Id 1 -Activity $Message -Status "Waiting for $Seconds seconds, $($Seconds - $Count) left" -PercentComplete (($Count / $Seconds) * 100)
+    Start-Sleep -Seconds 1
+  }
+  Write-Progress -Id 1 -Activity $Message -Status "Completed" -PercentComplete 100 -Completed
 }
 
 # Adds clock to window 
@@ -93,9 +74,9 @@ else
 }
   
 # Menu to switch between Microsoft Azure 'dev' and 'prod' subscriptions
-function Load-Menu ()
+function Load-DeadpoolMenu ()
 {
-	cls
+    cls
     Write-Host ""
     Write-Host -foreground red "    _  _    ____  ____        ____  _____    _    ____  ____   ___   ___  _     "
     Write-Host -foreground red "  _| || |_ |  _ \|  _ \      |  _ \| ____|  / \  |  _ \|  _ \ / _ \ / _ \| |    "
@@ -111,65 +92,68 @@ function Load-Menu ()
     Write-Host -foreground cyan "                             (______________ _ )   (___ _ _)  "
     Write-Host ""
     Write-Host ""
-    Write-Host "----------------------------------------------------------"
-    Write-Host "Select an Option Below"
-    Write-Host ""
-    Write-Host "(E) Exit"
-    Write-Host "(D) Connect to Azure Develop Subscription"
-    Write-Host "(P) Connect to Azure Production Subscription"
-    Write-Host "(U) Update AzureRM Modules"
-    Write-Host "----------------------------------------------------------"
-	
+    Write-Host "------------------------------------------------------------------------------------------"
+
 	$Title = "Please select the subscription to load"
-	$Message = "You can return to this menu anytime by typing Load-Menu"
+	$Message = "You can return to this menu anytime by typing Load-DeadpoolMenu"
 	
 	$E = New-Object System.Management.Automation.Host.ChoiceDescription "&Exit", `
 	"Exits the menu to default PowerShell Host."
 	
-	$0 = New-Object System.Management.Automation.Host.ChoiceDescription "&Develop", `
+	$0 = New-Object System.Management.Automation.Host.ChoiceDescription "&d1", `
 	"Logs you into the Develop Subscription"
 	
-	$1 = New-Object System.Management.Automation.Host.ChoiceDescription "&Production", `
+	$1 = New-Object System.Management.Automation.Host.ChoiceDescription "&u1-pd", `
 	"Logs you into the Production Subscription"
-  
-  $2 = New-Object System.Management.Automation.Host.ChoiceDescription "&Update AzureRM", `
-  "Updates the Azure Powershell Modules"
+
+  $2 = New-Object System.Management.Automation.Host.ChoiceDescription "&List All Subs", `
+	"Lists all available subscriptions"
 	
 	$MenuOptions = [System.Management.Automation.Host.ChoiceDescription[]] ($E, $0, $1, $2)
 	
 	$MenuResult = $host.ui.PromptForChoice($Title, $Message, $MenuOptions, 0)
-    $Global:Env = ''
-	
+
 	switch	($MenuResult)
 	{
 		0 #Exit
     {
 			Write-Host "Exiting the menu"
 			Write-Host ""
-			Write-Host "You can return to this menu anytime by typing Load-Menu"
+			Write-Host "You can return to this menu anytime by typing Load-DeadpoolMenu"
     }
 		1 #Development
     {
-			$Global:Env = 'Dev'
+			$Global:Env = 'd1'
 			ConnectDevelop
     }
 		2 #Production
     {
-			$Global:Env = 'Prod'
+			$Global:Env = 'u1-pd'
 			ConnectProduction
     }
-    3 #Update Azure
+    3 #List all subscriptions
     {
+      Write-Host
+      Write-Host "All subscriptions:"
+      Write-Host "------------------"
+
       try
       {
-        Update-AzureRM
-        Load-Menu
+        (Get-AzureRmSubscription).SubscriptionName
+        Write-Host
+        Write-Host "Use 'Select-Sub -SubName X' where 'X' equals of the above to select that subscription."
+        Write-Host
       }
-      Catch
+      catch
       {
-        Write-Host "Ooops Something went wrong updating the modules"
-        Load-Menu
+        Write-Host
+        Login-AzureRmAccount
+        (Get-AzureRmSubscription).SubscriptionName
+        Write-Host
+        Write-Host "Use 'Select-Sub -SubName X' where 'X' equals one of the above to select that subscription."
+        Write-Host
       }
+
     }
 	}
 }
@@ -206,9 +190,14 @@ function ConnectProduction ()
   }
 }
 
+function Select-Sub ($SubName)
+{
+  Select-AzureRmSubscription -SubscriptionName $SubName
+  $Global:Env = $SubName
+}
+
 #Sets var to check for admin
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )  
-
 
 Set-Location C:\
 
@@ -220,37 +209,30 @@ if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Adminis
   Push-Location (Split-Path -Path $MyInvocation.MyCommand.Definition -Parent)
 
   Import-Module posh-git 
+
   function global:prompt {
-    if($Global:Env -cmatch "Dev")
-      {
-        $PromptString = "[Dev]: " + $(Get-Location)
-        Write-Host $PromptString -NoNewline -ForegroundColor Green -BackgroundColor Black
-        Write-VcsStatus
-        return " > "
-      }
-    elseif($Global:Env -cmatch "Prod")
-      {
-        $PromptString = '[Prod]: ' + $(Get-Location)
-        Write-Host $PromptString -NoNewline -ForegroundColor Yellow -BackgroundColor Black
-        Write-VcsStatus
-        return " > "
-      }
-    else
-      {
-        $PromptString = $(Get-Location)
-        Write-Host $PromptString -NoNewline -ForegroundColor White -BackgroundColor Black
-        Write-VcsStatus
-        return " > "
-      }
+
+    switch -wildcard ($Global:Env)
+    {
+      "u1-pd" {$promptColor = "Yellow"}
+      "d1" {$promptColor = "Green"}
+      "u4*" {$promptColor = "Magenta"}
+      default {$promptColor = "White"}
+    }
+
+    $PromptString = "[$Global:Env]: " + $(Get-Location)
+    Write-Host $PromptString -NoNewline -ForegroundColor $promptColor -BackgroundColor Black
+    Write-VcsStatus
+    return " > "
+
   }
   Pop-Location
   Start-SshAgent -Quiet	
-#  Import-Module C:\github\LKPosh-Module\LeanKit_Module.psm1
-  Load-Menu
+  Load-DeadpoolMenu
 }
 else
 { 
   clear	
   Write-Host -foreground darkred -background magenta "Not running in Admin..."
-  $Host.UI.RawUI.ForegroundColor = �magenta�
+  $Host.UI.RawUI.ForegroundColor = ?magenta?
 }
