@@ -72,11 +72,8 @@ else
       Install-AzureRM
   }
 }
-  
-# Menu to switch between Microsoft Azure 'dev' and 'prod' subscriptions
-function Load-DeadpoolMenu ()
-{
-    cls
+
+function dpheader {
     Write-Host ""
     Write-Host -foreground red "    _  _    ____  ____        ____  _____    _    ____  ____   ___   ___  _     "
     Write-Host -foreground red "  _| || |_ |  _ \|  _ \      |  _ \| ____|  / \  |  _ \|  _ \ / _ \ / _ \| |    "
@@ -93,6 +90,13 @@ function Load-DeadpoolMenu ()
     Write-Host ""
     Write-Host ""
     Write-Host "------------------------------------------------------------------------------------------"
+}
+
+# Menu to switch between Microsoft Azure 'dev' and 'prod' subscriptions
+function Load-DeadpoolMenu ()
+{
+    cls
+    dpheader
 
 	$Title = "Please select the subscription to load"
 	$Message = "You can return to this menu anytime by typing Load-DeadpoolMenu"
@@ -103,13 +107,19 @@ function Load-DeadpoolMenu ()
 	$0 = New-Object System.Management.Automation.Host.ChoiceDescription "&d1", `
 	"Logs you into the Develop Subscription"
 	
-	$1 = New-Object System.Management.Automation.Host.ChoiceDescription "&u1-pd", `
+	$1 = New-Object System.Management.Automation.Host.ChoiceDescription "&Prod", `
 	"Logs you into the Production Subscription"
 
-  $2 = New-Object System.Management.Automation.Host.ChoiceDescription "&List All Subs", `
+  $2 = New-Object System.Management.Automation.Host.ChoiceDescription "u&3", `
+	"Logs you into the u3 Subscription"
+
+  $3 = New-Object System.Management.Automation.Host.ChoiceDescription "u&4", `
+	"Logs you into the u4 Subscription"
+
+  $4 = New-Object System.Management.Automation.Host.ChoiceDescription "List &All Subs", `
 	"Lists all available subscriptions"
 	
-	$MenuOptions = [System.Management.Automation.Host.ChoiceDescription[]] ($E, $0, $1, $2)
+	$MenuOptions = [System.Management.Automation.Host.ChoiceDescription[]] ($E, $0, $1, $2, $3, $4)
 	
 	$MenuResult = $host.ui.PromptForChoice($Title, $Message, $MenuOptions, 0)
 
@@ -124,14 +134,24 @@ function Load-DeadpoolMenu ()
 		1 #Development
     {
 			$Global:Env = 'd1'
-			ConnectDevelop
+			Select-Sub -SubName LeanKit_Development
     }
 		2 #Production
     {
-			$Global:Env = 'u1-pd'
-			ConnectProduction
+			$Global:Env = 'Prod'
+			Select-Sub -SubName LeanKit_Production
     }
-    3 #List all subscriptions
+    3 # u3
+    {
+      $Global:Env = 'u3'
+      Select-Sub -SubName u3
+    }
+    4 # u4
+    {
+      $Global:Env = 'u4'
+      Select-Sub -SubName u4
+    }
+    5 #List all subscriptions
     {
       Write-Host
       Write-Host "All subscriptions:"
@@ -158,42 +178,20 @@ function Load-DeadpoolMenu ()
 	}
 }
 
-function ConnectDevelop () 
-{
-  cls
-  try
-  {
-      Write-Host "Attempting to login to Leankit Develop Subscription."
-      Select-AzureRmSubscription -SubscriptionName 'LeanKit_Development' | Out-Null
-  }
-  catch
-  {
-      Write-Host "Could not login or switch subscriptions...Initiating login"
-      Login-AzureRmAccount
-      Select-AzureRmSubscription -SubscriptionName 'LeanKit_Development' | Out-Null
-  }
-}
-
-function ConnectProduction ()
-{
-  cls
-  try
-  {
-      Write-Host "Attempting to login to Leankit Production Subscription."
-      Select-AzureRmSubscription -SubscriptionName 'LeanKit_Production' | Out-Null
-  }
-  catch
-  {
-      Write-Host "Could not login or switch subscriptions...Initiating login"
-      Login-AzureRmAccount
-      Select-AzureRmSubscription -SubscriptionName 'LeanKit_Production' | Out-Null
-  }
-}
-
 function Select-Sub ($SubName)
 {
-  Select-AzureRmSubscription -SubscriptionName $SubName
-  $Global:Env = $SubName
+  try
+  {
+    Write-Host "Attempting to login to $SubName Subscription"
+    Select-AzureRmSubscription -SubscriptionName $SubName | Out-Null
+  }
+  catch
+  {
+    Write-Host "Could not login or switch subscriptions... Initiating login"
+    Login-AzureRmAccount
+    Select-AzureRmSubscription -SubscriptionName $SubName | Out-Null
+  }
+
 }
 
 #Sets var to check for admin
@@ -214,9 +212,10 @@ if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Adminis
 
     switch -wildcard ($Global:Env)
     {
-      "u1-pd" {$promptColor = "Yellow"}
+      "prod" {$promptColor = "Yellow"}
       "d1" {$promptColor = "Green"}
-      "u4*" {$promptColor = "Magenta"}
+      "u3" {$promptColor = "Magenta"}
+      "u4" {$promptColor = "Magenta"}
       default {$promptColor = "White"}
     }
 
