@@ -1,33 +1,21 @@
 # Powershell profile
+$version = "2.0"
 
 # Set Aliases
-New-Alias dp Load-DeadpoolMenu
+New-Alias lm Load-Menu
+
+# .source the Write-Menu.ps1
+$ProfilePath = $Profile | Split-Path -parent
+. $ProfilePath\Write-Menu.ps1
 
 $hosts = "C:\Windows\System32\drivers\etc\hosts"
 
-# Simple find function
-function find ($filter, $path) {
-  if ($path -eq $null) {
-    Get-Childitem -recurse -filter $filter
-  } else {
-    Get-Childitem -recurse -filter $filter -path $path
-  }
-}
+$AzureRmProfilePath = [Environment]::GetFolderPath("MyDocuments") + "\AzureRmProfile.json"
 
-Function Start-Countdown 
-{
-  Param
-  (
-    [Int32]$Seconds = 10,
-    [string]$Message = "Pausing for 10 seconds..."
-  )
-    ForEach ($Count in (1..$Seconds))
-  {
-    Write-Progress -Id 1 -Activity $Message -Status "Waiting for $Seconds seconds, $($Seconds - $Count) left" -PercentComplete (($Count / $Seconds) * 100)
-    Start-Sleep -Seconds 1
-  }
-  Write-Progress -Id 1 -Activity $Message -Status "Completed" -PercentComplete 100 -Completed
-}
+#Sets var to check for admin
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )  
+
+Set-Location C:\
 
 # Adds clock to window 
 function Add-Clock {
@@ -58,68 +46,35 @@ If(!($PSVersionTable.PSVersion.Major) -ge '5')
   Write-Host "Please update to the latest version of PowerShell"
   Write-Host "https://msdn.microsoft.com/en-us/powershell/wmf/install"
 }
-else
-{
-  Write-Verbose -Message "Checking for Azure Module"
-  if(!(Get-Module -ListAvailable -Name 'AzureRM'))
-  {
-      Write-Host "AzureRM Module NOT installed.  Installing..." -BackgroundColor Black -ForegroundColor Green
-      Install-Module -Name AzureRM
-  }
-  if(!(Get-Module -ListAvailable -Name 'AzureRM.profile'))
-  {
-      Write-Host "Installing the Azure PowerShell Modules... This could take several minmutes." -BackgroundColor Black -ForegroundColor Green
-      Install-AzureRM
-  }
-}
 
-function dpheader {
-    Write-Host ""
-    Write-Host -foreground red "    _  _    ____  ____        ____  _____    _    ____  ____   ___   ___  _     "
-    Write-Host -foreground red "  _| || |_ |  _ \|  _ \      |  _ \| ____|  / \  |  _ \|  _ \ / _ \ / _ \| |    "
-    Write-Host -foreground red " |_  ..  _|| |_) | | | |_____| | | |  _|   / _ \ | | | | |_) | | | | | | | |    "
-    Write-Host -foreground red " |_  ..  _||  __/| |_| |_____| |_| | |___ / ___ \| |_| |  __/| |_| | |_| | |___ "
-    Write-Host -foreground red "   |_||_|  |_|   |____/      |____/|_____/_/   \_\____/|_|    \___/ \___/|_____|"
-    Write-Host ""
-    Write-Host -foreground cyan "                            _    _____   _ ___ ___            "
-    Write-Host -foreground cyan "                           /_\  |_  / | | | _ \ __|           "
-    Write-Host -foreground cyan "                     _ ___/ _ \__/ /| |_| |   / _|___ _ _     "
-    Write-Host -foreground cyan "                   (___  /_/ \_\/___|\___/|_|_\___| _____)    "
-    Write-Host -foreground cyan "                     (_______ _ _)         _ ______ _)_ _     "
-    Write-Host -foreground cyan "                             (______________ _ )   (___ _ _)  "
-    Write-Host ""
-    Write-Host ""
-    Write-Host "------------------------------------------------------------------------------------------"
+
+function azureheader ($SubName) {
+  Write-Host
+  Write-Host -foreground cyan "              _    _____   _ ___ ___            "
+  Write-Host -foreground cyan "             /_\  |_  / | | | _ \ __|           "
+  Write-Host -foreground cyan "       _ ___/ _ \__/ /| |_| |   / _|___ _ _     "
+  Write-Host -foreground cyan "     (___  /_/ \_\/___|\___/|_|_\___| _____)    "
+  Write-Host -foreground cyan "       (_______ _ _)         _ ______ _)___     "
+  Write-Host -foreground cyan "         (_t_h_e_r_e__i_s_) no (_c_l_o_u_d_)    "
+  Write-Host ""
+  Write-Host "Logged into: $SubName"
 }
 
 # Menu to switch between Microsoft Azure 'dev' and 'prod' subscriptions
-function Load-DeadpoolMenu ()
+function Load-Menu ()
 {
-    cls
-    dpheader
+  Clear-Host
 
-	$Title = "Please select the subscription to load"
-	$Message = "You can return to this menu anytime by typing Load-DeadpoolMenu"
+	$Title = "Menu v$version. Do Azure things?"
+	$Message = "You can return to this menu anytime by typing Load-Menu"
 	
 	$E = New-Object System.Management.Automation.Host.ChoiceDescription "&Exit", `
 	"Exits the menu to default PowerShell Host."
 	
-	$0 = New-Object System.Management.Automation.Host.ChoiceDescription "&d1", `
-	"Logs you into the Develop Subscription"
+	$0 = New-Object System.Management.Automation.Host.ChoiceDescription "&Azure", `
+	"Do Azure Things"
 	
-	$1 = New-Object System.Management.Automation.Host.ChoiceDescription "&Prod", `
-	"Logs you into the Production Subscription"
-
-  $2 = New-Object System.Management.Automation.Host.ChoiceDescription "u&3", `
-	"Logs you into the u3 Subscription"
-
-  $3 = New-Object System.Management.Automation.Host.ChoiceDescription "u&4", `
-	"Logs you into the u4 Subscription"
-
-  $4 = New-Object System.Management.Automation.Host.ChoiceDescription "List &All Subs", `
-	"Lists all available subscriptions"
-	
-	$MenuOptions = [System.Management.Automation.Host.ChoiceDescription[]] ($E, $0, $1, $2, $3, $4)
+	$MenuOptions = [System.Management.Automation.Host.ChoiceDescription[]] ($E, $0)
 	
 	$MenuResult = $host.ui.PromptForChoice($Title, $Message, $MenuOptions, 0)
 
@@ -129,60 +84,91 @@ function Load-DeadpoolMenu ()
     {
 			Write-Host "Exiting the menu"
 			Write-Host ""
-			Write-Host "You can return to this menu anytime by typing Load-DeadpoolMenu"
+			Write-Host "You can load the subscription menu anytime by typing 'sub'."
+      Write-Host ""
     }
-		1 #Development
+		1 #AzureMenu
     {
-			$Global:Env = 'd1'
-			Select-Sub -SubName LeanKit_Development
-    }
-		2 #Production
-    {
-			$Global:Env = 'Prod'
-			Select-Sub -SubName LeanKit_Production
-    }
-    3 # u3
-    {
-      $Global:Env = 'u3'
-      Select-Sub -SubName u3
-    }
-    4 # u4
-    {
-      $Global:Env = 'u4'
-      Select-Sub -SubName u4
-    }
-    5 #List all subscriptions
-    {
-      Write-Host
-      Write-Host "All subscriptions:"
-      Write-Host "------------------"
-
-      try
-      {
-        (Get-AzureRmSubscription).SubscriptionName
-        Write-Host
-        Write-Host "Use 'Select-Sub -SubName X' where 'X' equals of the above to select that subscription."
-        Write-Host
-      }
-      catch
-      {
-        Write-Host
-        Login-AzureRmAccount
-        (Get-AzureRmSubscription).SubscriptionName
-        Write-Host
-        Write-Host "Use 'Select-Sub -SubName X' where 'X' equals one of the above to select that subscription."
-        Write-Host
-      }
-
+      Test-AzureModules
+      $AzureSubs = Get-AzureSubs
+      Get-SubMenu
     }
 	}
+}
+
+function Test-AzureModules {
+  if(!(Get-Module -ListAvailable -Name 'AzureRM'))
+  {
+    Write-Host "AzureRM Module NOT installed.  Installing..." -BackgroundColor Black -ForegroundColor Green
+    Install-Module -Name AzureRM
+    Import-Modle -Name AzureRM
+  }
+  if(!(Get-Module -ListAvailable -Name 'AzureRM.profile'))
+  {
+    Write-Host "Installing the Azure PowerShell Modules... This could take several minmutes." -BackgroundColor Black -ForegroundColor Green
+    Install-AzureRM
+  }
+}
+
+function Update-AzureModules {
+  # todo
+}
+
+function Get-SubMenu {
+  $SubSelection = Write-Menu -Title "Select Azure Subscription" -Sort -Entries @(
+    $AzureSubs
+  )
+
+  Select-Sub -SubName $SubSelection
+  $Global:AzureSub = $SubSelection
+  [System.Console]::CursorVisible = $true # The Write-Menu.ps1 that is used by this function has a bug somewhere that isn't resetting the ::CursorVisible to $true, so we're doing it here.
+}
+
+function sub {
+  $AzureSubs = Get-AzureSubs
+  Get-SubMenu
+}
+
+function Get-AzureSubs {
+  if (!$AzureSubs) {
+    try
+    {
+      $AzureSubs = (Get-AzureRmSubscription).Name |  Where-Object {$_ -notlike "*-*" }
+      Write-Host "Logged into Azure, getting subscriptions..."
+      return $AzureSubs
+      #Write-Host $AzureSubs
+    }
+    catch
+    {
+      Test-AzureProfile
+      $AzureSubs = (Get-AzureRmSubscription).Name | Where-Object {$_ -notlike "*-*" }
+      return $AzureSubs
+      #Write-Host $AzureSubs
+    }
+  }
+}
+
+function Test-AzureProfile () {
+  if (test-path $AzureRmProfilePath) {
+    Get-AzureRmContext
+    Import-AzureRmContext -Path $AzureRmProfilePath | Out-Null
+  }
+  else {
+    Write-Host "Log into Azure..."
+    Login-AzureRmAccount -ErrorAction SilentlyContinue | Out-Null
+    Save-AzureRmContext -path $AzureRmProfilePath
+  }
 }
 
 function Select-Sub ($SubName)
 {
   try
   {
-    Write-Host "Attempting to login to $SubName Subscription"
+    if (Get-AzureRmContext) {
+      azureheader $SubName
+      Write-Host "(Select a new subscription anytime by typing 'sub'.)"
+      Write-Host ""
+    }
     Select-AzureRmSubscription -SubscriptionName $SubName | Out-Null
   }
   catch
@@ -191,47 +177,52 @@ function Select-Sub ($SubName)
     Login-AzureRmAccount
     Select-AzureRmSubscription -SubscriptionName $SubName | Out-Null
   }
-
 }
-
-#Sets var to check for admin
-$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )  
-
-Set-Location C:\
 
 # This is the part that lods the prompt
 # If $currentPrincipal is admin, load all the things, else change foreground to magenta
-if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )) {
+Add-Clock | Out-Null  
+Push-Location (Split-Path -Path $MyInvocation.MyCommand.Definition -Parent)
 
-  Add-Clock | Out-Null  
-  Push-Location (Split-Path -Path $MyInvocation.MyCommand.Definition -Parent)
+if (Get-Module -ListAvailable -Name posh-git) {
+  Write-Host "posh-git installed"
+} else {
+  Write-Host "Installing posh-git"
+  install-Module posh-git
+}
+Import-Module posh-git -ErrorAction SilentlyContinue
 
-  Import-Module posh-git 
-
-  function global:prompt {
-
-    switch -wildcard ($Global:Env)
-    {
-      "prod" {$promptColor = "Yellow"}
-      "d1" {$promptColor = "Green"}
-      "u3" {$promptColor = "Magenta"}
-      "u4" {$promptColor = "Magenta"}
-      default {$promptColor = "White"}
-    }
-
-    $PromptString = "[$Global:Env]: " + $(Get-Location)
-    Write-Host $PromptString -NoNewline -ForegroundColor $promptColor -BackgroundColor Black
-    Write-VcsStatus
-    return " > "
-
+function global:prompt 
+{
+  switch ($Global:AzureSub)
+  {
+    "LeanKit_Production" {$Global:AzureSub = "PD"}
+    "LeanKit_Development" {$Global:AzureSub = "DEV"}
   }
-  Pop-Location
-  Start-SshAgent -Quiet	
-  Load-DeadpoolMenu
+
+  switch ($Global:AzureSub)
+  {
+    "PD" {$promptColor = "Yellow"}
+    "DEV" {$promptColor = "Green"}
+    "u3" {$promptColor = "Magenta"}
+    "u4" {$promptColor = "cyan"}
+    "e3" {$promptColor = "gray"}
+    "e4" {$promptColor = "darkgreen"}
+    default {$promptColor = "White"}
+  }
+
+  if ($Global:AzureSub) {
+    $PromptString = "[$Global:AzureSub]: " + $(Get-Location)
+    Write-Host $PromptString -NoNewline -ForegroundColor $promptColor -BackgroundColor Black
+    if (get-module -name posh-git) {Write-VcsStatus}
+    return " > "
+  } else {
+    $PromptString = $(Get-Location)
+    Write-Host $PromptString -NoNewline -ForegroundColor $promptColor -BackgroundColor Black
+    if (get-module -name posh-git) {Write-VcsStatus}
+  return " > "
+  }
+
 }
-else
-{ 
-  clear	
-  Write-Host -foreground darkred -background magenta "Not running in Admin..."
-  $Host.UI.RawUI.ForegroundColor = ?magenta?
-}
+Pop-Location
+Load-Menu
