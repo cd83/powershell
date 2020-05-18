@@ -10,6 +10,7 @@ $chocoPackages = @(
     'kubernetes-cli',
     'kubernetes-helm',
     'minikube',
+    'mousewithoutborders',
     'poshgit',
     'terraform',
     'vscode'
