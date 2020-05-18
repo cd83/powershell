@@ -10,8 +10,10 @@ $chocoPackages = @(
     'kubernetes-cli',
     'kubernetes-helm',
     'minikube',
+    'microsoft-teams'
     'mousewithoutborders',
     'poshgit',
+    'slack'
     'terraform',
     'vscode'
 )
@@ -43,6 +45,12 @@ $codeExtensions = @(
 
 $codeExtensions | ForEach-Object {code --install-extension $_}
 
-$codeSettings = Get-Content "$env:APPDATA\Code\User\settings.json" | ConvertFrom-Json
-$codeSettings.'workbench.colorTheme' = 'Abyss'
-$codeSettings | ConvertTo-Json | Set-Content "$env:APPDATA\Code\User\settings.json"
+if (Test-Path "$env:APPDATA\Code\User\settings.json") {
+    $codeSettings = Get-Content "$env:APPDATA\Code\User\settings.json" | ConvertFrom-Json
+    $codeSettings.'workbench.colorTheme' = 'Abyss'
+    $codeSettings | ConvertTo-Json | Set-Content "$env:APPDATA\Code\User\settings.json"
+} else {
+    $codeSettings = @{'workbench.colorTheme'='Abyss'}
+    $json = $codeSettings | ConvertTo-Json
+    New-Item -Path "$env:APPDATA\Code\User\" -Name "settings.json" -ItemType "file" -Value $json
+}

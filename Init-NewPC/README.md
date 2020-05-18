@@ -9,9 +9,11 @@ Quick script to:
   * git
   * kubernetes-cli
   * kubernetes-helm
+  * microsoft-teams
   * minikube
   * mousewithoutborders
   * poshgit
+  * slack
   * terraform
   * vsc
 * Install vscode and extensions
