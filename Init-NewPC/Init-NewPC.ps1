@@ -4,6 +4,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.We
 # Install Chocolatey Modules
 $chocoPackages = @(
     'azure-cli',
+    'brave',
     'docker-for-windows',
     'git'
     'kubernetes-cli',
