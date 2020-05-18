@@ -10,6 +10,7 @@ Quick script to:
   * kubernetes-cli
   * kubernetes-helm
   * minikube
+  * mousewithoutborders
   * poshgit
   * terraform
   * vsc
