@@ -4,8 +4,9 @@ Quick script to:
 
 * Install choco and choco packages
   * azure-cli
+  * brave browser
   * docker-for-windows
-  * git'
+  * git
   * kubernetes-cli
   * kubernetes-helm
   * minikube
